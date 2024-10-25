@@ -1,7 +1,7 @@
 # Thesis_GeoLoc
 **Boyi's Master Thesis -- Geolocalization**
 
-This repository serves as a work log and documentation for Boyi's master thesis on geolocalization. 
+This repository serves as a work log for Boyi's master thesis on geolocalization. 
 ---
 
 ## To-Do List
