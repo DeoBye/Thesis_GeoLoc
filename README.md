@@ -40,7 +40,7 @@ This repository serves as a work log for Boyi's master thesis on geolocalization
   - Our trained model performed worse at the 1 km threshold but achieved better accuracy at all other distances.
 
 ### Challenges
-- Seems the loss function could potentially be further optimized.
+- Seems the loss function could be optimized.
 - Observed that while loss decreases, performance improves across all distance thresholds—except for the 1 km threshold, where accuracy declines. 
 
 ---
