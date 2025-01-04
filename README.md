@@ -29,7 +29,7 @@ python main.py
      - `entropywithdis`: Our strategy.
 
 3. **Save Checkpoint for GeoCLIP**:
-   - In `geoclip.py`, specify the checkpoint to use
+   - In `geoclip.py`, specify the checkpoint to use, default is geoclip pretrained model.
 
 
 ### Streetscape dataset download
