@@ -30,3 +30,17 @@ python main.py
 
 3. **Save Checkpoint for GeoCLIP**:
    - In `geoclip.py`, specify the checkpoint to use
+
+
+### Streetscape dataset download
+run code ```download_jpegs.py```
+```bash
+python run ./download_imgs/download_jpegs.py
+```
+
+Detailed description refer to https://github.com/ualsg/global-streetscapes/wiki/2-Download-images
+
+
+### osv5m dataset download
+
+Refer to https://huggingface.co/datasets/osv5m/osv5m

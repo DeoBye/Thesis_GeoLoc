@@ -53,7 +53,7 @@ if __name__ == '__main__':
     mly.set_access_token(access_token)
 
     # Update in_csvPath and out_jpegFolder to suit your needs
-    in_csvPath = '/root/global-streetscapes/simplemaps.csv' # input csv
+    in_csvPath = '/root/Thesis_GeoLoc/download_imgs/map_filter.csv' # input csv
     out_mainFolder = './data/map_fll' # output folder to store the downloaded images
     filtered_csv =  './data/map/map_full_filter.csv'
     Path(out_mainFolder).mkdir(parents=True, exist_ok=True)
