@@ -45,3 +45,72 @@ This repository serves as a work log for Boyi's master thesis on geolocalization
 
 ---
 
+### 12.01.2024
+
+#### Dataset
+- Continued using the Streetscapes dataset.
+
+#### Experiment: Triplet Loss in GeoClip
+- Modified GeoClip to use triplet loss as the objective function:
+  - For each training data point, selected 5x batch size locations from the GPS gallery as neighbors.
+  - Experimented with different strategies for selecting negative samples:
+    1. Selected only the farthest locations as negatives.
+    2. Combined the farthest locations with nearby hard negatives.
+  - Used L2 norm as the distance function (default in triplet loss) and compared it with cosine similarity for consistency with GeoClip's inference approach.
+
+#### Results
+- Performance observations:
+  - Overall performance with hard negatives outperformed using only farthest negatives but still fell short of GeoClip.
+  - Accuracy at the 1 km threshold improved.
+  - Using cosine distance for triplet loss led to faster convergence compared to L2 norm, but the final performance was worse.
+
+---
+
+### 17.12.2024
+
+#### Experiment: Contrastive Loss (InfoNCE)
+- GeoClip originally uses random negatives from previous batches.
+- Modified approach to select 64 negatives for each data point:
+  - Half selected as far negatives.
+  - Half selected as hard nearby negatives.
+
+#### Additional Work
+- Familiarized with the **im2gps3k** and **yfcc16k** datasets.
+- Tested model on **im2gps3k** dataset to benchmark against GeoClip.
+
+#### Results
+- Performance on the im2gps3k dataset was worse compared to GeoClip.
+
+---
+
+### 02.01.2025
+
+#### Dataset
+- Downloaded the **MP-16 Dataset** (4.7M images), used for GeoClip training.
+- Used 5% of MP-16 for training.
+
+#### Experiment
+- Focused on hyperparameter tuning.
+
+#### Results
+- Achieved results comparable to GeoClip.
+
+---
+
+### 13.01.2025
+
+#### Spatial Analysis
+- Estimated semivariograms for MP-16, Streetscapes, and OSV5M datasets.
+
+#### Results
+- Visualized semivariograms:
+  - **MP-16**:
+    ![MP-16 Semivariogram](#)
+  - **Streetscapes**:
+    ![Streetscapes Semivariogram](#)
+  - **OSV5M**:
+    ![OSV5M Semivariogram](#)
+
+---
+
+
