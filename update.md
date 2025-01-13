@@ -103,14 +103,6 @@ This repository serves as a work log for Boyi's master thesis on geolocalization
 - Estimated semivariograms for MP-16, Streetscapes, and OSV5M datasets.
 
 #### Results
-- Visualized semivariograms:
-  - **MP-16**:
-    ![MP-16 Semivariogram](#)
-  - **Streetscapes**:
-    ![Streetscapes Semivariogram](#)
-  - **OSV5M**:
-    ![OSV5M Semivariogram](#)
 
----
 
 
