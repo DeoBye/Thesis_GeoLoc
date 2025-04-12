@@ -26,7 +26,7 @@ def eval_images(val_dataloader, model, device="cpu", logger=None):
     gps_gallery = model.gps_gallery.to(device)
 
     with torch.no_grad():
-        for imgs, labels in tqdm(val_dataloader, desc="Evaluating"):
+        for imgs, labels, aug1, aug2 in tqdm(val_dataloader, desc="Evaluating"):
             labels = labels.to(device)
             imgs = imgs.to(device)
 

@@ -10,7 +10,11 @@ class ImageEncoder(nn.Module):
         super(ImageEncoder, self).__init__()
         self.CLIP = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
         self.image_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14")
-        self.mlp = nn.Sequential(nn.Linear(768, 768),
+        self.mlp = nn.Sequential(nn.Linear(768, 1024),
+                                 nn.BatchNorm1d(1024),
+                                 nn.ReLU(),
+                                 nn.Linear(1024, 768),
+                                 nn.BatchNorm1d(768),
                                  nn.ReLU(),
                                  nn.Linear(768, 512))
 
