@@ -43,7 +43,7 @@ def build_strategy(strategy_name, model, device):
 # Main script for training and validating GeoCLIP
 def main(validate_only=False, test_only=False):
     # Hyperparameters
-    experiment_path = "./experiments/mp16/sslbatchnorm"                              #####
+    experiment_path = "./experiments/mp16/geoclip_new"                              #####
     os.makedirs(experiment_path, exist_ok=True)
     
     log_file = os.path.join(experiment_path, "logger.log")                   #####
@@ -67,14 +67,14 @@ def main(validate_only=False, test_only=False):
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.87)
     
-    strategy_name = "ssl"
+    strategy_name = "semi"
     strategy = build_strategy(strategy_name, model, device)
     
     print_log(f"Strategy: {strategy_name}", logger)
     
     # Prepare data loaders
-    train_dataset = GeoDataLoader("/data/roof/mp16/MP16-Pro/subset.csv", "/data/roof/mp16/MP16-Pro/subset", 'mp16', transform=img_train_transform())         #####
-    # train_dataset = GeoDataLoader_osv5m("/data/roof/osv5m/test_with_paths.csv", "/data/roof/osv5m/images/test", transform=img_train_transform())
+    # train_dataset = GeoDataLoader("/data/roof/mp16/MP16-Pro/subset.csv", "/data/roof/mp16/MP16-Pro/subset", 'mp16', transform=img_train_transform())         #####
+    train_dataset = GeoDataLoader("/data/roof/osv5m/test_with_paths.csv", "/data/roof/osv5m/images/test", 'osv5m', transform=img_train_transform())
     val_dataset = GeoDataLoader("/data/roof/osv5m/test_test.csv", "/data/roof/osv5m/images/test", 'osv5m', transform=img_val_transform())                          #####
     test_dataset = GeoDataLoader("/root/im2gps3k_places365.csv", "/root/im2gps3k_rgb_images", 'mp16', transform=img_val_transform())
 

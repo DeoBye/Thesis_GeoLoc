@@ -27,6 +27,8 @@ class Clip_Inspired:
         ret_dict = {"logits": logits_img_gps}
         return ret_dict
     
+    
+    
 class SSL:
     def __init__(self, model, device):
         self.model = model
@@ -549,6 +551,53 @@ class SemivarioPenalty:
         batch_indices, neg_indices = neg_mask_indices[0], neg_mask_indices[1]
         updated_logits_img_gps[batch_indices, neg_indices] = weighted_neg_logits.flatten()
         
+        return updated_logits_img_gps   
+    
+    def get_penalty5(self, logits, imgs_emb, gps, gps_all, img_all):
+        ## 差值作为beta来 reweight
+        gps_rad = gps.cpu().numpy() * np.array([np.pi/2, np.pi]) / np.array([90, 180])
+        gps_all_rad = gps_all.cpu().numpy() * np.array([np.pi/2, np.pi]) / np.array([90, 180])
+        
+        gc_dist = haversine_distances(gps_rad, gps_all_rad)
+        cosine_dist = cosine_distances(imgs_emb.cpu().numpy(), img_all.cpu().numpy())
+        rho_thres = 1e-6
+        
+        gc_flat = gc_dist.flatten()
+        cosine_flat = cosine_dist.flatten()
+        
+        pred_dist = self.semivar.variogram(gc_flat)
+        
+        sort_idx = np.argsort(gc_flat)
+        gc_sorted = gc_flat[sort_idx]
+        pred_sorted = pred_dist[sort_idx]
+        deriv = np.abs(pred_sorted[1:] - pred_sorted[:-1])
+        flat_idx_sorted = np.where(deriv < rho_thres)[0]       
+        flat_idx = sort_idx[flat_idx_sorted]
+        
+        
+        penalty = np.maximum(0, cosine_flat - pred_dist)
+        penalty[flat_idx] = 0  
+        penalty = penalty.reshape(gc_dist.shape)
+         
+        
+        penalty = torch.from_numpy(penalty.reshape(cosine_dist.shape)).to(self.device).to(logits.dtype)
+        batch_size = gps.shape[0]
+        neg_mask = torch.ones_like(logits, dtype=bool)
+        for i in range(batch_size):
+            neg_mask[i, i] = False 
+            
+        neg_logits = logits.masked_select(neg_mask).view(batch_size, -1)
+        neg_penalty = penalty.masked_select(neg_mask).view(batch_size, -1)
+        
+        weight = torch.exp(neg_penalty / 2)             ## penalty ranges from 0 - 0.8              exp(penalty / 2)  ranges
+        
+        weighted_neg_logits = neg_logits * weight  # Reweighted neg logits
+        
+        updated_logits_img_gps = logits.clone()
+        neg_mask_indices = neg_mask.nonzero(as_tuple=True)  # Get negative indices
+        batch_indices, neg_indices = neg_mask_indices[0], neg_mask_indices[1]
+        updated_logits_img_gps[batch_indices, neg_indices] = weighted_neg_logits.flatten()
+        
         return updated_logits_img_gps        
         
     
@@ -569,7 +618,7 @@ class SemivarioPenalty:
         
         if self.queue_initialized:
             img_all = torch.cat([imgs_emb, img_queue], dim=0)
-            logits_img_gps = self.get_penalty4(logits_img_gps, imgs_emb, gps, gps_all, img_all)
+            logits_img_gps = self.get_penalty5(logits_img_gps, imgs_emb, gps, gps_all, img_all)
             
         self.model.dequeue_and_enqueue(gps) 
         self.model.img_dequeue_and_enqueue(imgs_emb) 
@@ -759,5 +808,4 @@ class WeightedwithNeg:
         ret_dict = {'logits': updated_logits_img_gps}
         self.model.dequeue_and_enqueue(gps)  
         return ret_dict
-    
     

@@ -123,13 +123,20 @@ class GeoDataLoader(Dataset):
         #gps = self.coordinates[idx]
         gps = torch.tensor(self.coordinates[idx], dtype=torch.float32)
         
-        base_image = im.open(img_path).convert('RGB')
-
-        image = simple_transform(image)
-        aug1 = self.transform(image)
-        aug2 = self.transform(image)
-
-        return image, gps, aug1, aug2
+        base_pil = im.open(img_path).convert('RGB')
+        
+        img = simple_transform(base_pil)
+        aug1 = self.transform(base_pil)
+        aug2 = self.transform(base_pil)
+        item = {
+            'idx': idx,
+            'gps': gps,
+            'img': img,
+            'aug1': aug1,
+            'aug2': aug2
+        }
+        
+        return item
     
 class GeoDataLoader_im2gps(Dataset):
     """
