@@ -424,6 +424,11 @@ class SemivarioPenalty:
         self.queue_initialized = False
         with open('osv5m_fitted.pkl', 'rb') as fit:
             self.semivar = pickle.load(fit)
+            self.rho_thres = 1e-2
+            t = np.arange(0, np.pi, 0.01)
+            res = self.semivar.variogram(t)
+            der = (res[1:] - res[:-1]) / 0.01
+            self.rho = np.where(der < self.rho_thres)[0][0] * 0.01
         
     def get_penalty(self, logits, imgs_emb, gps, gps_all, img_all):
         ## 直接用差值来做logits
@@ -560,23 +565,22 @@ class SemivarioPenalty:
         
         gc_dist = haversine_distances(gps_rad, gps_all_rad)
         cosine_dist = cosine_distances(imgs_emb.cpu().numpy(), img_all.cpu().numpy())
-        rho_thres = 1e-6
         
         gc_flat = gc_dist.flatten()
         cosine_flat = cosine_dist.flatten()
         
-        pred_dist = self.semivar.variogram(gc_flat)
+        semi_dist = self.semivar.variogram(gc_flat)
         
-        sort_idx = np.argsort(gc_flat)
-        gc_sorted = gc_flat[sort_idx]
-        pred_sorted = pred_dist[sort_idx]
-        deriv = np.abs(pred_sorted[1:] - pred_sorted[:-1])
-        flat_idx_sorted = np.where(deriv < rho_thres)[0]       
-        flat_idx = sort_idx[flat_idx_sorted]
+        # sort_idx = np.argsort(gc_flat)
+        # gc_sorted = gc_flat[sort_idx]
+        # pred_sorted = pred_dist[sort_idx]
+        # deriv = np.abs(pred_sorted[1:] - pred_sorted[:-1])
+        # flat_idx_sorted = np.where(deriv < rho_thres)[0]       
+        # flat_idx = sort_idx[flat_idx_sorted]
         
         
-        penalty = np.maximum(0, cosine_flat - pred_dist)
-        penalty[flat_idx] = 0  
+        penalty = np.maximum(0, cosine_flat - semi_dist)
+        penalty[gc_flat > self.rho] = 0     ## penalty dist > rho = 0
         penalty = penalty.reshape(gc_dist.shape)
          
         
@@ -589,7 +593,8 @@ class SemivarioPenalty:
         neg_logits = logits.masked_select(neg_mask).view(batch_size, -1)
         neg_penalty = penalty.masked_select(neg_mask).view(batch_size, -1)
         
-        weight = torch.exp(neg_penalty / 2)             ## penalty ranges from 0 - 0.8              exp(penalty / 2)  ranges
+        weight = torch.exp(neg_penalty)             ## penalty ranges from 0 - 0.8              exp(penalty / 2)  ranges 1 - 1.5
+                                                    ## stabilize in the range of 0 - 0.4 
         
         weighted_neg_logits = neg_logits * weight  # Reweighted neg logits
         
@@ -605,12 +610,12 @@ class SemivarioPenalty:
         gps_queue = self.model.get_gps_queue()
         img_queue = self.model.get_img_queue() 
         gps = inputs['gps'].to(self.device)
-        imgs = inputs['img'].to(self.device)
+        imgs = inputs['aug1'].to(self.device)
         batch_size = len(gps)
         gps_noise = gps + torch.randn_like(gps) * (150 / 111_320)
         gps_queue_noise = gps_queue + torch.randn_like(gps_queue) * (1000 / 111_320)            
         gps_all = torch.cat([gps, gps_queue], dim=0)
-        gps_all_noise = torch.cat([gps, gps_queue_noise], dim=0)
+        gps_all_noise = torch.cat([gps_noise, gps_queue_noise], dim=0)
         
         # self.model.dequeue_and_euqueue(gps)
         logits_img_gps = self.model(imgs, gps_all_noise)
